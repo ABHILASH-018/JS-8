@@ -21,20 +21,28 @@ const services = [
     }
 ];
 
-let cart = [];
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let total = 0;
 
 const serviceContainer = document.getElementById("serviceContainer");
+const addedServices = document.getElementById("addedServices");
+const totalAmount = document.getElementById("totalAmount");
+const bookingForm = document.getElementById("bookingForm");
+const addCartBtn = document.getElementById("addCart");
+const bookBtn = document.getElementById("bookService");
+const logoutBtn = document.getElementById("logoutBtn");
 
 function displayServices() {
 
     serviceContainer.innerHTML = "";
 
-    services.forEach(service => {
+    services.forEach((service) => {
 
-        serviceContainer.innerHTML += `
+        const card = document.createElement("div");
 
-        <div class="card">
+        card.className = "card";
+
+        card.innerHTML = `
 
             <div class="imagePlaceholder">
                 🛠️
@@ -48,13 +56,11 @@ function displayServices() {
 
                 <div class="buttons">
 
-                    <button class="addBtn"
-                    onclick="addService(${service.id})">
+                    <button class="addBtn" onclick="addService(${service.id})">
                         Add Item
                     </button>
 
-                    <button class="skipBtn"
-                    onclick="skipService('${service.name}')">
+                    <button class="skipBtn" onclick="skipService('${service.name}')">
                         Skip Item
                     </button>
 
@@ -62,33 +68,32 @@ function displayServices() {
 
             </div>
 
-        </div>
-
         `;
+
+        serviceContainer.appendChild(card);
 
     });
 
 }
 
-displayServices();
+function addService(id) {
 
-function addService(id){
-
-    const service = services.find(service => service.id === id);
+    const service = services.find((item) => item.id === id);
 
     cart.push(service);
+
+    updateCart();
 
     alert(service.name + " added successfully!");
 
 }
 
-function skipService(name){
+function skipService(name) {
 
-    alert(name + " skipped!");
+    alert(name + " skipped.");
 
 }
-const addedServices = document.getElementById("addedServices");
-const totalAmount = document.getElementById("totalAmount");
+
 function updateCart() {
 
     addedServices.innerHTML = "";
@@ -101,15 +106,21 @@ function updateCart() {
 
         totalAmount.textContent = 0;
 
-        return;
+        localStorage.setItem("cart", JSON.stringify(cart));
 
+        return;
     }
 
-    cart.forEach(service => {
+    cart.forEach((service, index) => {
 
         const li = document.createElement("li");
 
-        li.textContent = `${service.name} - ₹${service.price}`;
+        li.innerHTML = `
+            ${service.name} - ₹${service.price}
+            <button onclick="removeItem(${index})">
+                Remove
+            </button>
+        `;
 
         addedServices.appendChild(li);
 
@@ -119,15 +130,99 @@ function updateCart() {
 
     totalAmount.textContent = total;
 
+    localStorage.setItem("cart", JSON.stringify(cart));
+
 }
-function addService(id) {
 
-    const service = services.find(service => service.id === id);
+function removeItem(index) {
 
-    cart.push(service);
+    cart.splice(index, 1);
 
     updateCart();
 
-    alert(service.name + " added successfully!");
-
 }
+
+addCartBtn.addEventListener("click", () => {
+
+    if (cart.length === 0) {
+
+        alert("Please add at least one service.");
+
+        return;
+
+    }
+
+    alert("Services added to cart successfully.");
+
+});
+
+bookBtn.addEventListener("click", () => {
+
+    if (cart.length === 0) {
+
+        alert("Your cart is empty.");
+
+        return;
+
+    }
+
+    bookingForm.scrollIntoView({
+
+        behavior: "smooth"
+
+    });
+
+});
+
+bookingForm.addEventListener("submit", function (e) {
+
+    e.preventDefault();
+
+    const name = document.getElementById("name").value;
+
+    const email = document.getElementById("email").value;
+
+    const password = document.getElementById("password").value;
+
+    if (cart.length === 0) {
+
+        alert("Please add a service before booking.");
+
+        return;
+
+    }
+
+    alert(
+        "Booking Successful!\n\n" +
+        "Name: " + name +
+        "\nEmail: " + email +
+        "\nTotal Amount: ₹" + total
+    );
+
+    cart = [];
+
+    updateCart();
+
+    localStorage.removeItem("cart");
+
+    bookingForm.reset();
+
+});
+
+logoutBtn.addEventListener("click", () => {
+
+    const confirmLogout = confirm("Are you sure you want to logout?");
+
+    if (confirmLogout) {
+
+        alert("Logged Out Successfully.");
+
+        location.reload();
+
+    }
+
+});
+
+displayServices();
+
+updateCart();
