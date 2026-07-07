@@ -21,201 +21,175 @@ const services = [
     }
 ];
 
+// I save the cart so it stays after refreshing the page.
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
 let total = 0;
 
 const serviceContainer = document.getElementById("serviceContainer");
 const addedServices = document.getElementById("addedServices");
 const totalAmount = document.getElementById("totalAmount");
 const bookingForm = document.getElementById("bookingForm");
-const addCartBtn = document.getElementById("addCart");
-const bookBtn = document.getElementById("bookService");
-const logoutBtn = document.getElementById("logoutBtn");
 
+// Show all services
 function displayServices() {
 
     serviceContainer.innerHTML = "";
 
-    services.forEach((service) => {
+    for (let i = 0; i < services.length; i++) {
 
-        const card = document.createElement("div");
+        let service = services[i];
+
+        let card = document.createElement("div");
 
         card.className = "card";
 
         card.innerHTML = `
+            <h3>${service.name}</h3>
 
-            <div class="imagePlaceholder">
-                🛠️
-            </div>
+            <p class="price">Price : ₹${service.price}</p>
 
-            <div class="card-body">
+            <button onclick="addService(${service.id})">
+                Add
+            </button>
 
-                <h3>${service.name}</h3>
-
-                <p class="price">₹${service.price}</p>
-
-                <div class="buttons">
-
-                    <button class="addBtn" onclick="addService(${service.id})">
-                        Add Item
-                    </button>
-
-                    <button class="skipBtn" onclick="skipService('${service.name}')">
-                        Skip Item
-                    </button>
-
-                </div>
-
-            </div>
-
+            <button onclick="skipService('${service.name}')">
+                Skip
+            </button>
         `;
 
         serviceContainer.appendChild(card);
-
-    });
-
+    }
 }
 
+// Add service into cart
 function addService(id) {
 
-    const service = services.find((item) => item.id === id);
+    let service = services.find(function(item){
+        return item.id == id;
+    });
 
     cart.push(service);
 
     updateCart();
 
-    alert(service.name + " added successfully!");
-
+    alert(service.name + " added.");
 }
 
-function skipService(name) {
+// Skip button
+function skipService(name){
 
     alert(name + " skipped.");
 
 }
 
-function updateCart() {
+// Update cart list
+function updateCart(){
 
     addedServices.innerHTML = "";
 
     total = 0;
 
-    if (cart.length === 0) {
+    if(cart.length == 0){
 
         addedServices.innerHTML = "<li>No services added.</li>";
 
-        totalAmount.textContent = 0;
+        totalAmount.innerText = 0;
 
         localStorage.setItem("cart", JSON.stringify(cart));
 
         return;
     }
 
-    cart.forEach((service, index) => {
+    for(let i=0;i<cart.length;i++){
 
-        const li = document.createElement("li");
+        let item = cart[i];
+
+        total = total + item.price;
+
+        let li = document.createElement("li");
 
         li.innerHTML = `
-            ${service.name} - ₹${service.price}
-            <button onclick="removeItem(${index})">
+            ${item.name} - ₹${item.price}
+            <button onclick="removeItem(${i})">
                 Remove
             </button>
         `;
 
         addedServices.appendChild(li);
+    }
 
-        total += service.price;
-
-    });
-
-    totalAmount.textContent = total;
+    totalAmount.innerText = total;
 
     localStorage.setItem("cart", JSON.stringify(cart));
-
 }
 
-function removeItem(index) {
+// Remove item
+function removeItem(index){
 
-    cart.splice(index, 1);
+    cart.splice(index,1);
 
     updateCart();
 
 }
 
-addCartBtn.addEventListener("click", () => {
+// Booking button
+document.getElementById("bookService").addEventListener("click",function(){
 
-    if (cart.length === 0) {
+    if(cart.length==0){
 
-        alert("Please add at least one service.");
-
-        return;
-
-    }
-
-    alert("Services added to cart successfully.");
-
-});
-
-bookBtn.addEventListener("click", () => {
-
-    if (cart.length === 0) {
-
-        alert("Your cart is empty.");
+        alert("Please add a service first.");
 
         return;
-
     }
 
     bookingForm.scrollIntoView({
-
-        behavior: "smooth"
-
+        behavior:"smooth"
     });
 
 });
 
-bookingForm.addEventListener("submit", function (e) {
+// Booking form
+bookingForm.addEventListener("submit",function(e){
 
     e.preventDefault();
 
-    const name = document.getElementById("name").value;
+    if(cart.length==0){
 
-    const email = document.getElementById("email").value;
-
-    const password = document.getElementById("password").value;
-
-    if (cart.length === 0) {
-
-        alert("Please add a service before booking.");
+        alert("Cart is empty.");
 
         return;
-
     }
+
+    let name = document.getElementById("name").value;
+
+    let email = document.getElementById("email").value;
 
     alert(
         "Booking Successful!\n\n" +
-        "Name: " + name +
-        "\nEmail: " + email +
-        "\nTotal Amount: ₹" + total
+        "Name : " + name +
+        "\nEmail : " + email +
+        "\nTotal : ₹" + total
     );
 
     cart = [];
-
-    updateCart();
 
     localStorage.removeItem("cart");
 
     bookingForm.reset();
 
+    updateCart();
+
 });
 
-logoutBtn.addEventListener("click", () => {
+// Logout button
+document.getElementById("logoutBtn").addEventListener("click",function(){
 
-    const confirmLogout = confirm("Are you sure you want to logout?");
+    let answer = confirm("Do you want to logout?");
 
-    if (confirmLogout) {
+    if(answer){
 
-        alert("Logged Out Successfully.");
+        alert("Logged out.");
 
         location.reload();
 
@@ -223,6 +197,7 @@ logoutBtn.addEventListener("click", () => {
 
 });
 
+// Start program
 displayServices();
 
 updateCart();
